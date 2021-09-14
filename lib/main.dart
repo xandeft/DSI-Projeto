@@ -37,7 +37,19 @@ class _RandomWordsState extends State<RandomWords> {
         if (index >= _suggestions.length) {
           _suggestions.addAll(generateWordPairs().take(10));
         }
-        return _buildRow(_suggestions[index]);
+        final item = _suggestions[index].asPascalCase;
+        return Dismissible(
+          key: Key(item),
+          onDismissed: (direction) {
+            setState(() {
+              _saved.remove(_suggestions[index]);
+              _suggestions.removeAt(index);
+            });
+          },
+          background: Container(color: Colors.red),
+          child: _buildRow(_suggestions[index])
+        );
+        //_buildRow(_suggestions[index]);
       },
     );
   }
