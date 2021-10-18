@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart'; // Add english_words package
+import 'WordsPairs.dart';
 
 void main() => runApp(MyApp());
 
@@ -22,7 +23,7 @@ class RandomWords extends StatefulWidget {
 }
 
 class _RandomWordsState extends State<RandomWords> {
-  final _suggestions = <WordPair>[];
+  final words = WordPairs(); //Criação da classe que contém os itens.
   final _saved = <WordPair>{};
   final _biggerFont = const TextStyle(fontSize: 18);
 
@@ -34,20 +35,20 @@ class _RandomWordsState extends State<RandomWords> {
           return const Divider();
         }
         final int index = i ~/ 2;
-        if (index >= _suggestions.length) {
-          _suggestions.addAll(generateWordPairs().take(10));
+        if (index >= words.returnLength()) {
+          words.addWords();
         }
-        final item = _suggestions[index].asPascalCase;
+        final item = words.returnItem(index).asPascalCase;
         return Dismissible(
             key: Key(item),
             onDismissed: (direction) {
               setState(() {
-                _saved.remove(_suggestions[index]);
-                _suggestions.removeAt(index);
+                _saved.remove(words.returnItem(index));
+                words.removeItem(index);
               });
             },
             background: Container(color: Colors.red),
-            child: _buildRow(_suggestions[index]));
+            child: _buildRow(words.returnItem(index)));
       },
     );
   }
@@ -59,8 +60,8 @@ class _RandomWordsState extends State<RandomWords> {
           child: Text(pair.asPascalCase, style: _biggerFont),
           onTap: () {
             alreadySaved
-                ? ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: const Text('Only edit non-favorite item'),
+                ? ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                    content: Text('Only edit non-favorite item'),
                     duration: Duration(seconds: 2),
                   ))
                 : openAlertBox(pair);
@@ -111,7 +112,7 @@ class _RandomWordsState extends State<RandomWords> {
                     Padding(
                       padding: EdgeInsets.only(left: 30.0, right: 30.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: "Enter new first string",
                           border: InputBorder.none,
                         ),
@@ -121,7 +122,7 @@ class _RandomWordsState extends State<RandomWords> {
                     Padding(
                       padding: EdgeInsets.only(left: 30.0, right: 30.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: "Enter new second string",
                           border: InputBorder.none,
                         ),
@@ -147,25 +148,30 @@ class _RandomWordsState extends State<RandomWords> {
                         setState(() {
                           if (myController.text == "" &&
                               myController2.text == "") {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: const Text('Invalid inputs'),
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Invalid inputs'),
                               duration: Duration(seconds: 2),
                             ));
                           } else if (myController.text == null ||
                               myController.text == "") {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: const Text('Invalid first input'),
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Invalid first input'),
                               duration: Duration(seconds: 2),
                             ));
                           } else if (myController2.text == null ||
                               myController2.text == "") {
-                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                              content: const Text('Invalid second input'),
+                            ScaffoldMessenger.of(context)
+                                .showSnackBar(const SnackBar(
+                              content: Text('Invalid second input'),
                               duration: Duration(seconds: 2),
                             ));
                           } else {
-                            _suggestions[_suggestions.indexOf(pair)] =
-                                WordPair(myController.text, myController2.text);
+                            words.updateItem(
+                                words.returnIndex(pair),
+                                WordPair(
+                                    myController.text, myController2.text));
                             Navigator.pop(context);
                           }
                         });
@@ -197,7 +203,7 @@ class _RandomWordsState extends State<RandomWords> {
 
       return Scaffold(
         appBar: AppBar(
-          title: Text('Saved Suggestions'),
+          title: const Text('Saved Suggestions'),
         ),
         body: ListView(children: divided),
       );
@@ -210,7 +216,7 @@ class _RandomWordsState extends State<RandomWords> {
       appBar: AppBar(
         title: const Text('Startup Name Generator'),
         actions: [
-          IconButton(icon: Icon(Icons.list), onPressed: _pushSaved),
+          IconButton(icon: const Icon(Icons.list), onPressed: _pushSaved),
         ],
       ),
       body: _buildSuggestions(),
